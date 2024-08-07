@@ -78,7 +78,7 @@ def display_english_content():
     st.header("Try It Yourself! 🚀")
     method = st.selectbox(
                 "Select method:",
-                ["Rule-based 📏", "Pretrained 🤖", "Finetuned 🎯"],
+                ["Rule-based 📏", "Machine Learning 🤖"],
                 index=None,
             )
     user_text = st.text_area("", placeholder="Enter some pidgin text...")
@@ -142,7 +142,7 @@ def display_pidgin_content():
     st.header("Make You Try Am! 🚀")
     method = st.selectbox(
                 "Select method:",
-                ["Rule-based 📏", "Pretrained 🤖", "Finetuned 🎯"],
+                ["Rule-based 📏", "Machine Learning 🤖"],
                 index=None,
             )
     user_text = st.text_area("", placeholder="Put your Pidgin tok for here...")
@@ -274,23 +274,16 @@ def display_model_content():
     - **Advantages**: Simple to implement and understand; works well for straightforward expressions.
     - **Limitations**: May struggle with context, sarcasm, or complex sentences; requires manual creation and updating of rules.
     """)
+    
+    
 
-    st.subheader("2. Pretrained Method 🤖")
+    st.subheader("2. Machine Learning Method 🤖")
     st.markdown("""
-    The pretrained method uses a model that has been trained on a large corpus of text data, which is then applied to our Pidgin sentiment analysis task.
-
-    - **How it works**: It uses transfer learning, applying knowledge from a model trained on a large dataset (often in English) to our specific Pidgin task.
-    - **Advantages**: Can capture complex language patterns; doesn't require a large Pidgin-specific dataset.
-    - **Limitations**: May not fully capture Pidgin-specific nuances; performance depends on the similarity between the pretraining data and Pidgin.
-    """)
-
-    st.subheader("3. Finetuned Method 🎯")
-    st.markdown("""
-    The finetuned method starts with a pretrained model and further trains it on our Pidgin-specific dataset.
-
-    - **How it works**: It takes a pretrained model and adjusts its parameters using our labeled Pidgin tweets.
-    - **Advantages**: Combines the benefits of pretraining with Pidgin-specific learning; often achieves the best performance.
-    - **Limitations**: Requires a good amount of labeled Pidgin data; can be computationally intensive.
+    The machine learning method involves training a model on a labeled dataset of Pidgin text and their corresponding sentiments.
+    
+    - **How it works**: A model is trained to learn patterns and relationships between text and sentiment. Once trained, it can predict the sentiment of new, unseen Pidgin text.
+    - **Advantages**: Can capture complex language nuances; potential for high accuracy with sufficient data.
+    - **Limitations**: Requires a labeled dataset; model performance can be affected by data quality and size.
     """)
 
 def main():
