@@ -34,6 +34,7 @@ non_neutrals = df[df['label'] != 0] \
                 .reset_index(drop=True)
 df = pd.concat([neutrals, non_neutrals]) \
         .reset_index(drop=True)
+
 # %%
 with open('result.txt', 'w') as file:
     file.write('')

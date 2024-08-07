@@ -1,14 +1,26 @@
-from logging import PlaceHolder
+from collections import Counter
+
+import duckdb
+import matplotlib.pyplot as plt
+import nltk
+import numpy as np
+import pandas as pd
+from wordcloud import WordCloud
 import streamlit as st
 from streamlit_option_menu import option_menu
+
+connection = duckdb.connect(database='datasets/pidgin_sentiment/test.duckdb', read_only=True)
+connection.execute('SELECT tweet, label FROM data')
+dataset = connection.fetchall()
+df = pd.DataFrame(dataset, columns=['pdg', 'label'])
 
 def sentiment_analysis_page():
     st.title("Nigerian Pidgin Sentiment Analysis")
 
     selected_page = option_menu(
         menu_title=None,
-        options=["English", "Pidgin", "Data & Models"],
-        icons=["chat-square-text", "translate", "database"],
+        options=["English", "Pidgin", "Dataset", "Models"],
+        icons=["chat-square-text", "translate", "database", "diagram-3"],
         menu_icon="cast",
         default_index=0,
         orientation="horizontal",
@@ -18,8 +30,10 @@ def sentiment_analysis_page():
         display_english_content()
     elif selected_page == "Pidgin":
         display_pidgin_content()
+    elif selected_page == "Dataset":
+        display_data_content()
     else:
-        display_data_and_models_page()
+        display_model_content()
 
 def display_english_content():
     st.markdown("""
@@ -149,24 +163,108 @@ def display_pidgin_content():
     Even with all these challenges, Pidgin sentiment analysis dey very important to understand wetin Pidgin speakers dey think and feel.
     """)
 
-def display_data_and_models_page():
-    st.title("Data and Models")
-
-    st.header("Dataset")
+def display_data_content():
+    st.header("📚 Dataset Overview")
     st.markdown("""
-    Our sentiment analysis model is trained on a dataset of tweets in Nigerian Pidgin. Here are some key characteristics of the dataset:
-
-    - **Source**: Tweets collected from Twitter
-    - **Language**: Nigerian Pidgin
-    - **Size**: Approximately 10,000 labeled tweets
-    - **Labels**: Each tweet is labeled as positive, negative, or neutral
-    - **Time Range**: Tweets collected between January 2022 and December 2023
-    - **Topics**: Diverse range including politics, entertainment, sports, and daily life
-
-    This dataset provides a rich source of real-world Pidgin language usage, allowing our models to capture the nuances and expressions unique to Nigerian Pidgin.
+    Our sentiment analysis models are trained on a diverse dataset of tweets in Nigerian Pidgin. 
+    Here are some key characteristics:
+    
+    - 🐦 **Source**: Tweets collected from Twitter
+    - 🗣️ **Language**: Nigerian Pidgin
+    - 📏 **Size**: 10,600 labeled tweets
+    - 🏷️ **Labels**: Each tweet is categorized as:
+        - 😊 Positive (0)
+        - 😐 Neutral (1)
+        - 😞 Negative (2)
+    - 📌 **Topics**: Wide range including politics, entertainment, sports, and daily life.
     """)
+    
+    st.markdown("---")
+    
+    # Exploratory Data Analysis
+    st.header("🔍 Exploratory Data Analysis")
+    
+    # Sample Data
+    st.subheader("📝 Sample Tweets")
+    sample_size = 5
+    sample_df = df.sample(n=sample_size)
+    pidgin_texts = sample_df["pdg"].tolist()
+    sentiments = ["Positive" if s == 0 else "Neutral" if s == 1 else "Negative" for s in sample_df["label"]]
+    
+    sample_table = pd.DataFrame({
+        'Pidgin Text': pidgin_texts,
+        'Sentiment': sentiments,
+    })
+    
+    # Custom CSS for better table styling
+    custom_css = """
+    <style>
+        .dataframe {
+            font-size: 12px;
+            font-family: Arial, sans-serif;
+        }
+        .dataframe th {
+            background-color: #f0f2f6;
+            color: #1e1e1e;
+            font-weight: bold;
+            padding: 10px;
+        }
+        .dataframe td {
+            padding: 8px;
+        }
+        .dataframe tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+    """
+    st.markdown(custom_css, unsafe_allow_html=True)
+    st.table(sample_table)
+    
+    # Sentiment Distribution
+    st.subheader("😊😐😞 Sentiment Distribution")
+    sentiment_counts = df["label"].map({0: "Positive", 1: "Neutral", 2: "Negative"}).value_counts().sort_index()
+    st.bar_chart(sentiment_counts)
+    
+    # Text Length Distribution
+    st.subheader("📏 Tweet Length Distribution")
+    text_lengths = [len(text.split()) for text in df["pdg"]]
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.hist(text_lengths, bins=20, edgecolor='black')
+    ax.set_title("Distribution of Tweet Lengths", fontsize=16)
+    ax.set_xlabel("Number of Words", fontsize=12)
+    ax.set_ylabel("Frequency", fontsize=12)
+    ax.grid(axis='y', linestyle='--', alpha=0.7)
+    st.pyplot(fig)
+    
+    # Word Frequency
+    st.subheader("🔤 Most Common Words")
+    most_common_words = {
+        "dey": 4427, "i": 3583, "na": 2655, "you": 2171, "me": 1877,
+        "no": 1876, "for": 1825, "the": 1779, "to": 1652, "go": 1572,
+        "like": 1503, "this": 1466, "my": 1449, "e": 1385, "and": 1381,
+        "don": 1309, "be": 1165, "wey": 1117, "say": 1042, "una": 852
+    }
+    
+    # Create a horizontal bar chart with custom colors
+    fig, ax = plt.subplots(figsize=(12, 8))
+    colors = plt.cm.viridis(np.linspace(0, 1, len(most_common_words)))
+    bars = ax.barh(list(most_common_words.keys()), list(most_common_words.values()), color=colors)
+    ax.set_title("Top 20 Most Frequent Words", fontsize=16)
+    ax.set_xlabel("Frequency", fontsize=12)
+    ax.set_ylabel("Words", fontsize=12)
+    ax.invert_yaxis()  # To display the most frequent word at the top
+    
+    # Add value labels to the end of each bar
+    for bar in bars:
+        width = bar.get_width()
+        ax.text(width, bar.get_y() + bar.get_height()/2, f'{width}', 
+                ha='left', va='center', fontweight='bold')
+    
+    plt.tight_layout()
+    st.pyplot(fig)
 
-    st.header("Sentiment Analysis Methods")
+def display_model_content():
+    st.header("Sentiment Analysis Models")
 
     st.subheader("1. Rule-based Method 📏")
     st.markdown("""
