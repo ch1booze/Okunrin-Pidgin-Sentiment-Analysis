@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 from nltk.sentiment import SentimentIntensityAnalyzer
 from streamlit_option_menu import option_menu
-from transformer import pipeline
+from transformers import pipeline
 
 connection = duckdb.connect(database='datasets/pidgin_sentiment/test.duckdb', read_only=True)
 connection.execute('SELECT tweet, label FROM data')
@@ -21,7 +21,7 @@ def ml_method(text):
     return sentiment_pipeline([text])
     
 def rb_method(text):
-    return sia.polarity_score(text)
+    return sia.polarity_scores(text)
 
 def sentiment_analysis_page():
     st.title("Nigerian Pidgin Sentiment Analysis")
